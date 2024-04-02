@@ -1,29 +1,37 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FindANameServer.Domain;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FindANameServer;
 
 public static class Endpoints
 {
-    private static List<string> names = ["Jakob", "Jens", "Kolera"];
-
     public static void AddNameEndpoints(this WebApplication app)
     {
-        app.MapGet("/names", () =>
+        app.MapGet("/names", async (UserManager<User> userManager, ClaimsPrincipal principal, INamesRepository namesRepository) =>
         {
-            return names;
+            var userName = principal.Identity?.Name ?? "";
+
+            var user = await userManager.FindByNameAsync(userName);
+
+            if (user == null) return Results.Unauthorized();
+
+            var names = namesRepository.GetRandom(user, 5);
+
+            return Results.Ok(names);
         })
         .WithName("GetNames")
-        .WithOpenApi();
+        .WithOpenApi()
+        .RequireAuthorization();
 
-        app.MapPost("/names", ([FromBody] string[] newNames) => {
-            foreach (var name in newNames)
-            {
-                names.Add(name);
-            }
+        app.MapPost("/names", (INamesRepository namesRepository, [FromBody] string[] newNames) => {
+            namesRepository.Add(newNames);
 
             return Results.Ok();
         })
         .WithName("PostNames")
-        .WithOpenApi();
+        .WithOpenApi()
+        .RequireAuthorization();
     }   
 }

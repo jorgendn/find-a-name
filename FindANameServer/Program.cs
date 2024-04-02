@@ -7,21 +7,27 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddDbContext<NameDbContext>(options =>
+    options.UseSqlServer("Data Source=LOCALHOST;Initial Catalog=dbNames;Integrated Security=False;User ID=dbUserNames;Password=P4ssw0rd1;MultipleActiveResultSets=True;TrustServerCertificate=True")
+);
+
+builder.Services.AddCors(options => options.AddPolicy("AllowAnything", builder =>
+{
+    builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+}));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add db
-builder.Services.AddDbContext<NameDbContext>(options => options.UseInMemoryDatabase("NameDb"));
-
-// Add auth
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<User>().AddEntityFrameworkStores<NameDbContext>();
 
+builder.Services.AddScoped<INamesRepository, NamesRepository>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseCors("AllowAnything");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
