@@ -14,9 +14,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<NameDbContext>(options => options.UseInMemoryDatabase("NameDb"));
 
 // Add auth
-builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme).AddIdentityCookies();
-builder.Services.AddAuthorizationBuilder();
-builder.Services.AddIdentityCore<User>().AddEntityFrameworkStores<NameDbContext>().AddApiEndpoints();
+builder.Services.AddAuthorization();
+builder.Services.AddIdentityApiEndpoints<User>().AddEntityFrameworkStores<NameDbContext>();
 
 var app = builder.Build();
 
@@ -49,7 +48,8 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast")
-.WithOpenApi();
+.WithOpenApi()
+.RequireAuthorization();
 
 app.Run();
 
