@@ -2,9 +2,7 @@
 
 public interface INamesRepository
 {
-    Task<IEnumerable<CandidateName>> GetAll(User user);
-
-    Task<IEnumerable<CandidateName>> GetRandom(User user, int n);
+    Task<IEnumerable<CandidateName>> Get(User user, int n);
 
     Task Add(string[] newNames);
 

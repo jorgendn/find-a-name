@@ -14,20 +14,13 @@ public class NamesRepository : INamesRepository
         _names = context.CandidateNames;
     }
 
-    public async Task<IEnumerable<CandidateName>> GetAll(User user)
+    public async Task<IEnumerable<CandidateName>> Get(User user, int n)
     {
-        var query = _names.AsNoTracking().Where(name => !name.RejectedBy.Contains(user));
-
-        return await query.ToListAsync();
-    }
-
-    public async Task<IEnumerable<CandidateName>> GetRandom(User user, int n)
-    {
-        var allNames = await _names.AsNoTracking().Where(name => !name.RejectedBy.Contains(user)).ToListAsync();
+        var allNames = await _names.AsNoTracking().Include(x => x.RejectedBy).Where(name => !name.RejectedBy.Any(u => u.Id == user.Id)).ToListAsync();
 
         var numberOfNames = allNames.Count();
 
-        if (numberOfNames <= n)
+        if (n <= 0 || numberOfNames <= n)
         {
             return allNames;
         }
@@ -64,7 +57,7 @@ public class NamesRepository : INamesRepository
     {
         foreach (var id in rejected)
         {
-            var name = await _names.AsTracking().FirstOrDefaultAsync(name => name.Id == id);
+            var name = await _names.AsTracking().Include(x => x.RejectedBy).FirstOrDefaultAsync(name => name.Id == id);
 
             name?.RejectedBy.Add(user);
         }
