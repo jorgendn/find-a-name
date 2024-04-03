@@ -35,7 +35,7 @@ public static class Endpoints
         .WithOpenApi()
         .RequireAuthorization();
 
-        app.MapDelete("/names", async (UserManager<User> userManager, ClaimsPrincipal principal, INamesRepository namesRepository, [FromBody] int[] rejected) =>
+        app.MapPost("/rejectNames", async (UserManager<User> userManager, ClaimsPrincipal principal, INamesRepository namesRepository, [FromBody] int[] rejected) =>
         {
             var userName = principal.Identity?.Name ?? "";
 
